@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Chess Position Editor & Enhanced Stockfish AI</title>
+    <link rel="stylesheet" href="style.css"/>
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Chess Position Editor & Enhanced Stockfish AI</h1>
+            <div class="game-phase" id="gamePhase">Phase 1: Image Upload & FEN Extraction</div>
+        </header>
+
+        <main class="main-content">
+            <!-- Phase 1: Upload & FEN Input -->
+            <section class="card phase-section" id="uploadPhase">
+                <div class="card__body">
+                    <h2>Setup Chess Position</h2>
+                    <div class="upload-section">
+                        <div class="form-group">
+                            <label class="form-label">Upload Chessboard Image (Simulated)</label>
+                            <input type="file" class="form-control" id="imageUpload" accept=".png,.jpg,.jpeg"/>
+                            <small class="text-secondary">Use FEN input below - Chess Snapshot API integration ready</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="fenInput">
+                                FEN String <span class="tooltip" title="Forsyth-Edwards Notation">ⓘ</span>
+                            </label>
+                            <input type="text" class="form-control" id="fenInput" 
+                                   placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"/>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn--primary" id="loadPositionBtn">Load Position</button>
+                            <button class="btn" id="useDefaultBtn">Use Default Start</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 2: Board Editor -->
+            <section class="card phase-section" id="editPhase" hidden>
+                <div class="card__body">
+                    <h2>Edit Board Position</h2>
+                    <div class="board-and-tools">
+                        <div id="board" class="board" role="grid" aria-label="Chessboard Editor"></div>
+                        <aside class="tools">
+                            <div class="tool-group">
+                                <h3>Board Controls</h3>
+                                <button class="btn" id="flipBtn">Flip Board</button>
+                                <button class="btn" id="resetBoardBtn">Clear Board</button>
+                                <button class="btn" id="startPosBtn">Start Position</button>
+                            </div>
+                            <div class="tool-group">
+                                <h3>Spare Pieces</h3>
+                                <div class="spare-pieces" id="sparePieces"></div>
+                            </div>
+                            <div class="tool-group">
+                                <h3>Current FEN</h3>
+                                <input type="text" class="form-control" id="fenOutput" readonly/>
+                                <button class="btn btn--secondary" id="copyFenBtn">Copy FEN</button>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 3: Game Configuration -->
+            <section class="card phase-section" id="configPhase" hidden>
+                <div class="card__body">
+                    <h2>Game Configuration</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Who moves first?</label>
+                            <div class="radio-row">
+                                <label><input type="radio" name="firstMove" value="white" checked/> White</label>
+                                <label><input type="radio" name="firstMove" value="black"/> Black</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Play as</label>
+                            <div class="radio-row">
+                                <label><input type="radio" name="playerSide" value="white" checked/> White</label>
+                                <label><input type="radio" name="playerSide" value="black"/> Black</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Move limit per side</label>
+                            <input id="moveLimit" type="number" class="form-control" min="1" max="20" value="6"/>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Engine Strength</label>
+                            <select id="engineStrength" class="form-control">
+                                <option value="max">Maximum (Depth 12)</option>
+                                <option value="high">High (Depth 10)</option>
+                                <option value="medium">Medium (Depth 8)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn--primary" id="startGameBtn">Start Game vs Stockfish</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 4: Gameplay -->
+            <section class="card phase-section" id="playPhase" hidden>
+                <div class="card__body">
+                    <h2>Game vs Enhanced Stockfish</h2>
+                    <div class="play-layout">
+                        <div class="board-container">
+                            <div id="boardPlay" class="board" role="grid" aria-label="Game Board"></div>
+                            <div class="board-actions">
+                                <button class="btn" id="flipDuringPlayBtn">Flip Board</button>
+                                <button class="btn" id="resignBtn">Resign</button>
+                                <button class="btn" id="restartBtn">New Game</button>
+                            </div>
+                        </div>
+                        <aside class="sidebar">
+                            <div class="engine-status">
+                                <h3>Engine Status</h3>
+                                <div id="engineStatus">Loading Stockfish...</div>
+                            </div>
+                            <div class="score">
+                                <h3>Material Score</h3>
+                                <div class="score-row"><span>White</span><strong id="scoreWhite">0</strong></div>
+                                <div class="score-row"><span>Black</span><strong id="scoreBlack">0</strong></div>
+                            </div>
+                            <div class="history">
+                                <h3>Move History</h3>
+                                <ol id="moveHistory"></ol>
+                            </div>
+                            <div class="status">
+                                <h3>Game Status</h3>
+                                <div id="statusText">Game ready.</div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 5: Results -->
+            <section class="card phase-section" id="resultPhase" hidden>
+                <div class="card__body">
+                    <h2>Game Result</h2>
+                    <div id="resultSummary" class="result-summary"></div>
+                    <div class="btn-group">
+                        <button class="btn btn--primary" id="newSessionBtn">New Session</button>
+                        <button class="btn" id="playAgainBtn">Play Again</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="phase-nav">
+                <button class="btn" id="prevPhaseBtn">Back</button>
+                <button class="btn btn--primary" id="nextPhaseBtn">Next</button>
+            </div>
+            <small>🚀 Powered by Stockfish WASM • Host over HTTP for engine loading</small>
+        </footer>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
